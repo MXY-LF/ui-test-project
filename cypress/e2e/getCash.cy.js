@@ -2460,14 +2460,14 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.wait("@emailVerify")
         cy.wait("@coupon")
         cy.wait("@ddtpWhitelist")
-        cy.removeLoadingAndScreenshot("home", { capture: 'fullPage' });
+        cy.removeLoadingAndScreenshot("1", { capture: 'fullPage' });
         cy.get('.shepherd-footer button').eq('0').click()
         cy.get('.shepherd-footer button').eq('1').click()
         cy.get('.we-button-body', { timeout: 5000 }).contains('Get Cash').if().click()
         cy.url().should("include", "/service/withdraw/intro");
         cy.get('.title').contains('What is Instant Cash?').should('be.visible');
         cy.get('.we-button-body', { timeout: 5000 }).contains('Get Cash Now').click()
-        cy.removeLoadingAndScreenshot("get cash", { capture: 'fullPage' });
+        cy.removeLoadingAndScreenshot("2", { capture: 'fullPage' });
         cy.get('.we-virtual-input', { timeout: 5000 }).click()
         cy.get('.we-number-keyboard-item-body').contains('8').click()
         cy.get('.we-number-keyboard-item-body').contains('6').click()
@@ -2477,20 +2477,20 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.get('.installment-cell').eq('3').click()
         cy.get('.coupons-cell ').click()
 
-        cy.removeLoadingAndScreenshot('coupons', { capture: 'fullPage', scale: true })
+        cy.removeLoadingAndScreenshot('cou3pons', { capture: 'fullPage', scale: true })
         cy.get('.coupon-card').eq('1').get('.we-button-body').contains('Use').click()
         cy.get('.repayment-plan').click()
-        cy.removeLoadingAndScreenshot("repay plan", { capture: 'fullPage' });
+        cy.removeLoadingAndScreenshot("4", { capture: 'fullPage' });
         cy.get('.we-icon-arrow-left').eq('0').click()
         cy.get('.we-button-body').contains('Continue').click()
-        cy.removeLoadingAndScreenshot("Confirm", { capture: 'fullPage' });
+        cy.removeLoadingAndScreenshot("5", { capture: 'fullPage' });
         cy.get('.we-checkbox-input').click()
         cy.get('.we-button-body').contains('Continue').click()
 
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("5").click();
         cy.get(".key").contains("2").click();
-        cy.removeLoadingAndScreenshot("pin get bash");
+        cy.removeLoadingAndScreenshot("6");
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("2").click();
@@ -2499,6 +2499,6 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.wait('@applyLoan')
         cy.wait('@transactionStatus')
         cy.wait(100)
-        cy.removeLoadingAndScreenshot("final");
+        cy.removeLoadingAndScreenshot("7");
     });
 });

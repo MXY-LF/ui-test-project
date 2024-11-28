@@ -10,9 +10,8 @@ export async function POST(request) {
         const newTestCase = await prisma.testCase.findUnique({
             where: { id: testId }
         });
-        console.log('newTestCase:', newTestCase);
         // 将任务添加到队列中
-        taskQueue.push({ testCaseId: testId, script: newTestCase.script, name: newTestCase.name });
+        taskQueue.push({ testCaseId: testId, script: newTestCase.script.replaceAll('removeLoadingAndScreenshot', 'screenshot'), name: newTestCase.name });
         console.log('Task added to queue:', taskQueue.length, isProcessing);
         // 如果没有正在处理的任务，则开始处理队列
         if (!isProcessing) {

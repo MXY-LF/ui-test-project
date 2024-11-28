@@ -1239,7 +1239,7 @@ describe("template spec", { defaultCommandTimeout: 300000 }, () => {
     cy.wait("@getBanner")
     // cy.wait("@accountStatus")
     cy.wait("@events")
-    cy.removeLoadingAndScreenshot("home", { capture: 'fullPage' });
+    cy.removeLoadingAndScreenshot("1", { capture: 'fullPage' });
     // 点击协议
     cy.get(".tnc-contain").click();
     // 验证点击后的效果（例如，检查某个元素是否可见）
@@ -1250,17 +1250,17 @@ describe("template spec", { defaultCommandTimeout: 300000 }, () => {
       // 点击每个元素
       cy.wrap($el).click();
     });
-    cy.removeLoadingAndScreenshot("protoco");
+    cy.removeLoadingAndScreenshot("2");
     cy.get(".we-button-body").click();
     cy.wait("@protocol")
     cy.wait("@checkWhitelist")
     cy.wait(1000);
-    cy.removeLoadingAndScreenshot("pin", { capture: 'fullPage' });
+    cy.removeLoadingAndScreenshot("3", { capture: 'fullPage' });
     // 输入pin
     cy.get(".key").contains("2").click();
     cy.get(".key").contains("5").click();
     cy.get(".key").contains("2").click();
-    cy.removeLoadingAndScreenshot("pin2");
+    cy.removeLoadingAndScreenshot("4");
     cy.get(".key").contains("2").click();
     cy.get(".key").contains("2").click();
     cy.get(".key").contains("2").click();
@@ -1294,7 +1294,7 @@ describe("template spec", { defaultCommandTimeout: 300000 }, () => {
     cy.wait("@antifraud")
     cy.wait("@credit")
     cy.wait("@result")
-    cy.removeLoadingAndScreenshot("form", { capture: 'fullPage' });
+    cy.removeLoadingAndScreenshot("5", { capture: 'fullPage' });
     cy.wait("@personalCenter")
     cy.wait("@emailVerify")
     cy.wait("@coupon")
@@ -1303,6 +1303,6 @@ describe("template spec", { defaultCommandTimeout: 300000 }, () => {
     //  cy.url().should("include", "/h");
     // cy.wait(5000);
     // 确保所有请求都已完成
-    cy.removeLoadingAndScreenshot("final", { capture: 'fullPage' });
+    cy.removeLoadingAndScreenshot("6", { capture: 'fullPage' });
   });
 });

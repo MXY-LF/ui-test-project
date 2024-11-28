@@ -1,7 +1,6 @@
 import { PNG } from 'pngjs';
 import pixelmatch from 'pixelmatch';
 
-
 export const adjustCanvas = (image, width, height) => {
     if (image.width === width && image.height === height) {
         return image;
@@ -15,8 +14,8 @@ export const adjustCanvas = (image, width, height) => {
 export function compareBase64Images(expectedBase64, actualBase64) {
     try {
         // 解码 Base64 数据
-        const expectedImageBuffer = Buffer.from(expectedBase64, 'base64');
-        const actualImageBuffer = Buffer.from(actualBase64, 'base64');
+        const expectedImageBuffer = Buffer.from(expectedBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
+        const actualImageBuffer = Buffer.from(actualBase64.replace(/^data:image\/png;base64,/, ''), 'base64');
 
         // 解码图片
         const expectedImage = PNG.sync.read(expectedImageBuffer);
@@ -50,8 +49,7 @@ export function compareBase64Images(expectedBase64, actualBase64) {
             return '';
         }
     } catch (error) {
-        console.error('发生错误:', error);
+        console.error('发生错误:', error.message);
         return '';
     }
 }
-

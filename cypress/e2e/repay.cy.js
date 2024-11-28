@@ -1971,17 +1971,17 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
 
         cy.get('.shepherd-footer button').eq('0').click()
         cy.get('.shepherd-footer button').eq('1').click()
-        cy.removeLoadingAndScreenshot("home", { capture: 'viewport' });
+        cy.removeLoadingAndScreenshot("1", { capture: 'viewport' });
         cy.get(':nth-child(3) > .we-cell-body').click()
         cy.url().should("include", "/pay-later/bill/over-dues");
         cy.wait('@bill')
-        cy.removeLoadingAndScreenshot("Bill list", { capture: 'viewport' });
+        cy.removeLoadingAndScreenshot("2", { capture: 'viewport' });
         cy.get('.page-content > :nth-child(3)').click()
         cy.wait('@bill')
         cy.get('a').click()
         cy.get('.left > .we-icon').click()
         cy.get('.we-button-body').click()
-        cy.removeLoadingAndScreenshot("Bill Detail", { capture: 'viewport' });
+        cy.removeLoadingAndScreenshot("3", { capture: 'viewport' });
         cy.get('.we-nav-bar-back-button').click()
         cy.wait('@bill')
         cy.get('.we-button-body').click()
@@ -1992,7 +1992,7 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("5").click();
         cy.get(".key").contains("2").click();
-        cy.removeLoadingAndScreenshot("pin repay");
+        cy.removeLoadingAndScreenshot("4");
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("2").click();
         cy.get(".key").contains("2").click();
@@ -2000,9 +2000,9 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.wait("@validate")
         cy.wait("@repay")
         cy.wait("@repayResult")
-        cy.removeLoadingAndScreenshot("repay_result");
+        cy.removeLoadingAndScreenshot("5");
         cy.get('.btn-secondary > .we-button-body').click()
         cy.wait('@transactionDetail')
-        cy.removeLoadingAndScreenshot("transactionDetail");
+        cy.removeLoadingAndScreenshot("6");
     });
 });
