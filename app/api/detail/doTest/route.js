@@ -11,7 +11,7 @@ export async function POST(request) {
             where: { id: testId }
         });
         // 将任务添加到队列中
-        taskQueue.push({ testCaseId: testId, script: newTestCase.script.replaceAll('removeLoadingAndScreenshot', 'screenshot'), name: newTestCase.name });
+        taskQueue.push({ testCaseId: testId, script: newTestCase.script, name: newTestCase.name });
         console.log('Task added to queue:', taskQueue.length, isProcessing);
         // 如果没有正在处理的任务，则开始处理队列
         if (!isProcessing) {
