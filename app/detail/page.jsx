@@ -91,7 +91,7 @@ export default function Create() {
                 headerLine={true}
               key={item.name}
               title={item.name}
-              style={{ width: '100%', height: 360, backgroundColor: '#f0fff0'}}
+              style={{ width: '100%', height: 600, backgroundColor: '#f0fff0'}}
               headerExtraContent={
                 <Text link onClick={() => doTestAgain(item.id)}>
                   重新执行
