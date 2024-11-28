@@ -2477,7 +2477,7 @@ describe("getCash spec", { defaultCommandTimeout: 300000 }, () => {
         cy.get('.installment-cell').eq('3').click()
         cy.get('.coupons-cell ').click()
 
-        cy.removeLoadingAndScreenshot('cou3pons', { capture: 'fullPage', scale: true })
+        cy.removeLoadingAndScreenshot('3', { capture: 'fullPage', scale: true })
         cy.get('.coupon-card').eq('1').get('.we-button-body').contains('Use').click()
         cy.get('.repayment-plan').click()
         cy.removeLoadingAndScreenshot("4", { capture: 'fullPage' });

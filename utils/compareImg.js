@@ -44,7 +44,7 @@ export function compareBase64Images(expectedBase64, actualBase64) {
 
         if (percentage > 0) {
             const diffImageBuffer = PNG.sync.write(diffImage);
-            return diffImageBuffer.toString('base64');
+            return `data:image/png;base64,${diffImageBuffer.toString('base64')}`;
         } else {
             return '';
         }
