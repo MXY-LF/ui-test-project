@@ -38,7 +38,7 @@ export async function POST(request) {
         });
 
         // 打开一个新的终端窗口来执行命令
-        openTerminalWithCommand(`serve -s -p "${port}" "${newFolderPath}/dist"`);
+        openTerminalWithCommand(`serve -s -p ${port} "${newFolderPath}/dist"`);
 
         return new Response(JSON.stringify({ data: project }), {
             status: 200,
