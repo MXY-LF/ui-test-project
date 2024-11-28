@@ -16,7 +16,7 @@ datasource db {
 model Project {
   id        Int        @id @default(autoincrement())
   name      String
-  port      String     @unique
+  port      Int     @unique
   testCases TestCase[] // 关联多个TestCase
   zipFile   String? // 压缩包文件路径或URL
 }
