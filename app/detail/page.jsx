@@ -130,7 +130,7 @@ export default function Create() {
             </Card>
           ))}
           <Card
-            style={{ width: 360, height: 360,backgroundColor: '#f0fff0' }}
+            style={{ width: 360, height: 600,backgroundColor: '#f0fff0' }}
             bodyStyle={{
               display: 'flex',
               alignItems: 'center',

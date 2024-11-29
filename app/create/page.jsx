@@ -1,8 +1,7 @@
 // 指定这是一个客户端组件
 'use client'
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Form, Col, Row, Typography, Button, Breadcrumb } from '@douyinfe/semi-ui';
 import { IconUpload, IconHome } from '@douyinfe/semi-icons';
 
@@ -13,9 +12,18 @@ import { IconUpload, IconHome } from '@douyinfe/semi-icons';
  */
 export default function Create() {
   const { Title } = Typography;
-  const { Section, Input,InputNumber } = Form;
+  const { Section, Input, InputNumber } = Form;
   const style = { width: '90%' };
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initValues = {
+    id: ~~searchParams.get('id') || '',
+    name: searchParams.get('name') || '',
+    port: ~~searchParams.get('port') || '',
+  }
+  console.log('----', initValues)
+  const isEdit = !!initValues.id;
+
   const handleSubmit = async (values) => {
     const params = {
       ...values,
@@ -78,7 +86,7 @@ export default function Create() {
       </Breadcrumb>
       <div className='p-10'>
         <Form
-          // validateFields={syncValidate}
+          initValues={initValues}
           labelPosition='left'
           style={{ padding: 10, width: '100%' }}
           onSubmit={handleSubmit}
@@ -90,6 +98,9 @@ export default function Create() {
                   validate={validateName}
                   field="name"
                   label="项目名称"
+                  placeholder="请输入项目名称"
+                  disabled={isEdit}
+                  required
 
                   style={style}
                   trigger='blur'
@@ -100,6 +111,8 @@ export default function Create() {
                   field="port"
                   label="端口"
                   validate={validatePort}
+                  disabled={isEdit}
+                  placeholder={'请输入端口'}
                   style={style}
                   trigger='blur'
                 />
@@ -109,6 +122,7 @@ export default function Create() {
                   field='files'
                   name='files'
                   label='项目打包文件'
+
                   validate={validateFiles}
                   action='/api/upload'
                 >
