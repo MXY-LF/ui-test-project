@@ -64,7 +64,7 @@ export default function Project() {
               key={item}
               bordered={true}
               headerLine={true}
-              style={{ maxWidth: 360, height: 60, backgroundColor: '#e6f7ff' }}
+              style={{ maxWidth: 360, height: 60, backgroundColor: '#FFF5E6' }}
               bodyStyle={{
                 display: 'flex',
                 alignItems: 'center',
@@ -82,7 +82,7 @@ export default function Project() {
             </Card>
           ))}
           <Card
-            style={{ maxWidth: 360, height: 60, backgroundColor: '#e6f7ff' }}
+            style={{ maxWidth: 360, height: 60, backgroundColor: '#FFF5E6' }}
             bodyStyle={{
               display: 'flex',
               alignItems: 'center',

@@ -66,17 +66,20 @@ export async function processQueue() {
                 const testCase = await prisma.testCase.findUnique({
                     where: { id: testCaseId }
                 });
+                console.log(testCase.detail)
                 if (result.status === 'COMPLETED') {
+                    
                     // 创建新的 testCase 并关联到项目
                     let diffImgs = [];
-                    if (testCase.detail.pop()?.images) {
-                        testCase.detail.pop()?.images.forEach(async (image, index) => {
+                    if (testCase.detail.at(-1)?.images) {
+                        testCase.detail.at(-1)?.images.forEach(async (image, index) => {
                             const imgResult = await compareBase64Images(image, result.images[index])
                             imgResult && diffImgs.push(imgResult);
                         });
                     }
                     const detail = testCase.detail
                     if (detail.length >= 10) {
+                        console.log(detail.length)
                         detail.shift()
                     }
                     detail.push({
@@ -85,6 +88,7 @@ export async function processQueue() {
                         images: result.images,
                         diffImgs
                     })
+                    console.log(detail.length)
                     await prisma.testCase.update({
                         where: { id: testCaseId },
                         data: {
