@@ -45,14 +45,24 @@ export async function POST(request) {
     }
 }
 
+// 格式化日期为年月日时分秒的形式
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 // 处理任务队列
 export async function processQueue() {
-
     isProcessing = true;
 
     if (taskQueue.length > 0) {
         const { testCaseId, script, name } = taskQueue.shift();
-        console.log('Processing queue...', name);
+        console.log('Processing queue...', name, formatDate(new Date()));
         try {
             const projectRoot = process.cwd(); // 获取当前工作目录
             // 启动子进程
@@ -66,29 +76,26 @@ export async function processQueue() {
                 const testCase = await prisma.testCase.findUnique({
                     where: { id: testCaseId }
                 });
-                console.log(testCase.detail)
                 if (result.status === 'COMPLETED') {
-                    
                     // 创建新的 testCase 并关联到项目
                     let diffImgs = [];
-                    if (testCase.detail.at(-1)?.images) {
-                        testCase.detail.at(-1)?.images.forEach(async (image, index) => {
-                            const imgResult = await compareBase64Images(image, result.images[index])
+                    if (testCase.detail?.at(-1)?.images) {
+                        testCase.detail?.at(-1)?.images.forEach((image, index) => {
+                            const imgResult =  compareBase64Images(image, result.images[index]);
                             imgResult && diffImgs.push(imgResult);
-                        });
+                        })
                     }
-                    const detail = testCase.detail
+                    const detail = testCase.detail;
                     if (detail.length >= 10) {
-                        console.log(detail.length)
-                        detail.shift()
+                        detail.shift();
                     }
                     detail.push({
                         status: 'COMPLETED',
                         video: result.video,
                         images: result.images,
-                        diffImgs
-                    })
-                    console.log(detail.length)
+                        diffImgs,
+                        timestamp: formatDate(new Date()) // 添加时间戳
+                    });
                     await prisma.testCase.update({
                         where: { id: testCaseId },
                         data: {
@@ -99,11 +106,12 @@ export async function processQueue() {
                     });
                 } else if (result.status === 'FAILED') {
                     detail.push({
-                        status: 'COMPLETED',
+                        status: 'FAILED',
                         video: '',
                         images: [],
-                        diffImgs: []
-                    })
+                        diffImgs: [],
+                        timestamp: formatDate(new Date()) // 添加时间戳
+                    });
                     await prisma.testCase.update({
                         where: { id: testCaseId },
                         data: { detail },
@@ -115,13 +123,13 @@ export async function processQueue() {
 
             // 监听子进程的退出事件
             child.on('exit', (code) => {
-                console.log('code', isProcessing);
+                console.log('Child process exited with code:', code, formatDate(new Date()));
                 if (code !== 0) {
                     console.error('Child process exited with code:', code);
                 }
                 // 子进程退出后，继续处理下一个任务
                 if (taskQueue.length > 0) {
-                    console.log('Next task in queue:', taskQueue[0].name, isProcessing);
+                    console.log('Next task in queue:', taskQueue[0].name, formatDate(new Date()), isProcessing);
                     processQueue();
                 } else {
                     isProcessing = false;
@@ -131,6 +139,5 @@ export async function processQueue() {
             console.error('Error executing task:', error);
             // 可以在这里记录错误或采取其他措施
         }
-        // 由于我们在子进程的 exit 事件中调用 processQueue，这里不需要 break
     }
 }

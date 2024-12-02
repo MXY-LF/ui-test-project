@@ -77,7 +77,15 @@ export default function Create() {
                 headerLine={true}
                 key={item.status+index}
                 title={name}
-                style={{ width: '100%', height: 600, backgroundColor: '#F5E6FA' }}
+                style={{ width: '100%', height: 600, backgroundColor: '#E6F0FF' }}
+                headerExtraContent={
+                  <>
+                  <Text type="success" className='cursor-pointer' onClick={() => goHistory(item.id,item.name)}>
+                    执行时间：{item.timestamp}
+                  </Text>
+                  
+                  </>
+                }
               >
                 <div className='text-cyan-400 mb-4'>测试图片:</div>
                 <ImagePreview className='flex  gap-1  mb-4'>
