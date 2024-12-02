@@ -17,7 +17,9 @@ export async function GET(request) {
             where: { id: parseInt(testId) },
         });
         if (!testCases) {
-            return NextResponse.error({ status: 404, message: 'testCase not found' });
+            return NextResponse.json({data: {
+                detail: []
+            }});
         }
         
 
