@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export async function GET(request) {
     const url = new URL(request.url);
     const id = url.searchParams.get('id'); // 获取请求参数中的 id
+    const currentFlag = !!url.searchParams.get('currentFlag'); // 获取请求参数中的 id
 
     if (!id) {
         return NextResponse.error({ status: 400, message: 'ID is required' });
@@ -21,6 +22,14 @@ export async function GET(request) {
         if (!project) {
             return NextResponse.error({ status: 404, message: 'Project not found' });
         }
+        const testCases = project.testCases || []
+        if (currentFlag) {
+            testCases.forEach((testCase, index) => {
+                const detail = testCase.detail.pop()
+                delete testCase.detail
+                testCases[index] = { ...testCase, ...detail }
+            })
+        }
 
         // 构建响应数据
         const response = {
@@ -28,7 +37,7 @@ export async function GET(request) {
                 id: project.id,
                 name: project.name,
                 port: project.port,
-                testCases: project.testCases || []
+                testCases: testCases
             }
         };
 

@@ -19,11 +19,8 @@ export async function POST(request) {
             data: {
                 projectId: parseInt(projectId), // 确保 projectId 是整数
                 name: name,
-                video: '',
-                status: 'DOING',
-                images: [],
-                diffImgs: [],
                 script: script,
+                detail: []
             },
         });
 
@@ -66,34 +63,46 @@ export async function processQueue() {
 
             // 监听子进程的消息
             child.on('message', async (result) => {
+                const testCase = await prisma.testCase.findUnique({
+                    where: { id: testCaseId }
+                });
                 if (result.status === 'COMPLETED') {
-
                     // 创建新的 testCase 并关联到项目
-                    const testCase = await prisma.testCase.findUnique({
-                        where: { id: testCaseId }
-                    });
                     let diffImgs = [];
-                    if (testCase.images) {
-                        testCase.images.forEach(async (image, index) => {
+                    if (testCase.detail.pop()?.images) {
+                        testCase.detail.pop()?.images.forEach(async (image, index) => {
                             const imgResult = await compareBase64Images(image, result.images[index])
                             imgResult && diffImgs.push(imgResult);
                         });
                     }
+                    const detail = testCase.detail
+                    if (detail.length >= 10) {
+                        detail.shift()
+                    }
+                    detail.push({
+                        status: 'COMPLETED',
+                        video: result.video,
+                        images: result.images,
+                        diffImgs
+                    })
                     await prisma.testCase.update({
                         where: { id: testCaseId },
                         data: {
-                            status: 'COMPLETED',
-                            video: result.video,
-                            images: result.images,
-                            diffImgs
+                            detail: detail
                         },
                     }).catch((updateError) => {
                         console.error('Error updating testCase status:', updateError);
                     });
                 } else if (result.status === 'FAILED') {
+                    detail.push({
+                        status: 'COMPLETED',
+                        video: '',
+                        images: [],
+                        diffImgs: []
+                    })
                     await prisma.testCase.update({
                         where: { id: testCaseId },
-                        data: { status: 'FAILED' },
+                        data: { detail },
                     }).catch((updateError) => {
                         console.error('Error updating testCase status:', updateError);
                     });
