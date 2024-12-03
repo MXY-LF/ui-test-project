@@ -26,7 +26,13 @@ export default function Create() {
       try {
         
         const testId = searchParams.get('testId')
-        const response = await fetch(`/api/detail/history?testId=${testId}`);
+        const response = await fetch(`/api/detail/history`,{
+          method: 'POST', // 设置请求方法为 POST
+          headers: {
+            'Content-Type': 'application/json', // 设置请求头
+          },
+          body: JSON.stringify({testId}), // 将表单数据转换为 JSON 字符串
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

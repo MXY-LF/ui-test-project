@@ -22,7 +22,13 @@ export default function Create() {
       try {
         const id = searchParams.get('id')
 
-        const response = await fetch(`/api/detail?id=${id}&currentFlag=true`);
+        const response = await fetch(`/api/detail`,{
+          method: 'POST', // 设置请求方法为 POST
+          headers: {
+            'Content-Type': 'application/json', // 设置请求头
+          },
+          body: JSON.stringify({id,currentFlag:true}), // 将表单数据转换为 JSON 字符串
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

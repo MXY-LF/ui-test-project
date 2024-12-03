@@ -3,9 +3,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(request) {
-    const url = new URL(request.url);
-    const testId = url.searchParams.get('testId'); // 获取请求参数中的 id
+export async function POST(request) {
+    const body = await request.json();
+    const{ testId }= body; // 获取请求参数中的 id
    
 
     if (!testId) {

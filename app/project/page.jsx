@@ -20,13 +20,14 @@ export default function Project() {
 
   async function fetchData() {
     try {
-      const response = await fetch('/api/project');
+      const response = await fetch('/api/project',{method:'POST'});
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const responseData = await response.json();
+      console.log(responseData);
       setData(responseData.data);
     } catch (error) {
       console.error('Error fetching data:', error);

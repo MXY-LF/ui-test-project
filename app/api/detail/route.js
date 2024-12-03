@@ -4,10 +4,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function GET(request) {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id'); // 获取请求参数中的 id
-    const currentFlag = !!url.searchParams.get('currentFlag'); // 获取请求参数中的 id
-
+    const body = await request.json();
+    const {id,currentFlag} = body
+   
     if (!id) {
         return NextResponse.error({ status: 400, message: 'ID is required' });
     }
