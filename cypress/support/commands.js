@@ -37,7 +37,7 @@ Cypress.Commands.add('removeLoadingAndScreenshot', (screenshotName, options) => 
     });
 
     // 等待一段时间以确保元素已经删除（可选）
-    cy.wait(100);
+    cy.wait(2000);
 
     // 截图
     cy.screenshot(screenshotName, options);
