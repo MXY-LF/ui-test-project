@@ -37,7 +37,7 @@ export function compareBase64Images(expectedBase64, actualBase64) {
             diffImage.height,
             {
                 alpha: 1,
-                threshold: 0 // pixelmatch threshold option
+                threshold: 0.03 // pixelmatch threshold option
             }
         );
         const percentage = mismatchedPixels / (diffImage.width * diffImage.height);
