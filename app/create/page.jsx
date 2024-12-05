@@ -16,6 +16,7 @@ export default function Create() {
   const style = { width: '90%' };
   const router = useRouter();
   const searchParams = useSearchParams();
+  const version = JSON.parse(decodeURIComponent(searchParams.get('version')))
   const initValues = {
     id: ~~searchParams.get('id') || '',
     name: searchParams.get('name') || '',
@@ -67,7 +68,16 @@ export default function Create() {
     }
     return '';
   }
+  const validateVersion = (value) => {
 
+    if (!value) {
+      return `请输入版本号`;
+    }
+    if (version.include(value)) {
+      return `版本号重复`;
+    }
+    return '';
+  }
   const validateFiles = (value) => {
 
     if (!value) {
@@ -113,6 +123,16 @@ export default function Create() {
                   validate={validatePort}
                   disabled={isEdit}
                   placeholder={'请输入端口'}
+                  style={style}
+                  trigger='blur'
+                />
+              </Col>
+              <Col span={8}>
+                <Input
+                  field="version"
+                  label="版本号"
+                  validate={validateVersion}
+                  placeholder={'请输入版本号'}
                   style={style}
                   trigger='blur'
                 />

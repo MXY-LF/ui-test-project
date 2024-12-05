@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { taskQueue, isProcessing, processQueue } from '@/app/api/detail/create/route'
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -11,12 +12,14 @@ export async function POST(request) {
     const body = await request.json();
     // 检查是否有 id
     const hasId = !!body.id;
-
+    const curVersion = body.version;
     // 将 fileDir 属性重新命名为 zipFile
     const modifiedBody = {
         ...body,
+        version: [],
         zipFile: body.files,
     };
+
 
     delete modifiedBody.files; // 删除原始的 files 属性
     delete modifiedBody.id;
@@ -41,7 +44,7 @@ export async function POST(request) {
         }
 
         // 获取项目的 name 和 id
-        const { name, id, port } = project;
+        const { name, id, port, version } = project;
 
         // 构建新的文件夹名称
         const oldFolderPath = modifiedBody.zipFile;
@@ -56,7 +59,7 @@ export async function POST(request) {
         // 更新数据库中的路径
         await prisma.project.update({
             where: { id: project.id },
-            data: { zipFile: newFolderPath }
+            data: { zipFile: newFolderPath, version: [...version, curVersion] }
         });
 
         // 关闭旧的终端进程和端口
@@ -65,6 +68,8 @@ export async function POST(request) {
         // 打开一个新的终端窗口来执行命令
         const newProcess = openTerminalWithCommand(`serve -s -p ${port} "${newFolderPath}/dist"`);
         terminalProcesses.set(project.id, newProcess);
+
+        hasId && handleTestCasesAndVersions(project.id, curVersion, version)
 
         return new Response(JSON.stringify({ data: project }), {
             status: 200,
@@ -76,7 +81,39 @@ export async function POST(request) {
         });
     }
 }
+// 异步处理测试用例和版本创建
+async function handleTestCasesAndVersions(projectId, curVersionNum, version) {
+    try {
+        // 获取项目的所有测试用例
+        const testCases = await prisma.testCase.findMany({
+            where: { projectId }
+        });
 
+        for (const testCase of testCases) {
+            console.log('cur testCase', testCase.id);
+            // 对每个测试用例创建当前版本的 version
+            const curVersion = await prisma.version.create({
+                data: {
+                    testCaseId: testCase.id,
+                    version: curVersionNum,
+                    status: 'DOING',
+                    video: '',
+                    images: [],
+                    diffImgs: [],
+                }
+            });
+            // 将任务添加到队列中
+            taskQueue.push({ testCaseId: testCase.id, script: testCase.script, name: testCase.name, versionId: curVersion.id, versions: version });
+            console.log('Task added to queue:', taskQueue.length, isProcessing);
+            // 如果没有正在处理的任务，则开始处理队列
+            if (!isProcessing) {
+                processQueue();
+            }
+        }
+    } catch (error) {
+        console.error('Error handling test cases and versions:', error);
+    }
+}
 // 更新文件夹名称的函数
 async function updateFolderName(oldName, newName) {
     try {

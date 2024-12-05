@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 
 export async function POST(request) {
     const body = await request.json();
-    const {id,currentFlag} = body
-   
+    const { id, currentFlag } = body
+
     if (!id) {
         return NextResponse.error({ status: 400, message: 'ID is required' });
     }
@@ -15,20 +15,17 @@ export async function POST(request) {
         const project = await prisma.project.findUnique({
             where: { id: parseInt(id) },
             include: {
-                testCases: true
+                testCases: {
+                    include: {
+                        version: true
+                    }
+                }
             }
         });
         if (!project) {
             return NextResponse.error({ status: 404, message: 'Project not found' });
         }
-        const testCases = project.testCases || []
-        if (currentFlag) {
-            testCases.forEach((testCase, index) => {
-                const detail = testCase.detail.pop()
-                delete testCase.detail
-                testCases[index] = { ...testCase, ...detail }
-            })
-        }
+        const testCases = project.testCases
 
         // 构建响应数据
         const response = {
@@ -36,6 +33,7 @@ export async function POST(request) {
                 id: project.id,
                 name: project.name,
                 port: project.port,
+                version: project.version,
                 testCases: testCases
             }
         };

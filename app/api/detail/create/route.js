@@ -19,13 +19,27 @@ export async function POST(request) {
             data: {
                 projectId: parseInt(projectId), // 确保 projectId 是整数
                 name: name,
-                script: script,
-                detail: []
+                script: script
             },
         });
+        const curProject = await prisma.project.findUnique({
+            where: { id: parseInt(projectId) }
+        });
 
+        const versions = curProject.version;
+        const newVersion = await prisma.version.create({
+            data: {
+                testCaseId: newTestCase.id,
+                version: versions.pop(),
+                status: 'DOING',
+                video: '',
+                images: [],
+                diffImgs: [],
+                // timestamp: formatDate(new Date()) // 添加时间戳
+            }
+        });
         // 将任务添加到队列中
-        taskQueue.push({ testCaseId: newTestCase.id, script, name });
+        taskQueue.push({ testCaseId: newTestCase.id, script, name, versionId: newVersion.id, versions });
         console.log('Task added to queue:', taskQueue.length, isProcessing);
         // 如果没有正在处理的任务，则开始处理队列
         if (!isProcessing) {
@@ -61,8 +75,8 @@ export async function processQueue() {
     isProcessing = true;
 
     if (taskQueue.length > 0) {
-        const { testCaseId, script, name } = taskQueue.shift();
-        console.log('Processing queue...', name, formatDate(new Date()));
+        const { versionId, script, name, versions, testCaseId } = taskQueue.shift();
+        console.log('Processing queue...', isProcessing, name, versions, formatDate(new Date()));
         try {
             const projectRoot = process.cwd(); // 获取当前工作目录
             // 启动子进程
@@ -73,48 +87,46 @@ export async function processQueue() {
 
             // 监听子进程的消息
             child.on('message', async (result) => {
-                const testCase = await prisma.testCase.findUnique({
-                    where: { id: testCaseId }
-                });
+
+
                 if (result.status === 'COMPLETED') {
                     // 创建新的 testCase 并关联到项目
                     let diffImgs = [];
-                    if (testCase.detail?.at(-1)?.images) {
-                        testCase.detail?.at(-1)?.images.forEach((image, index) => {
-                            const imgResult =  compareBase64Images(image, result.images[index]);
+                    const lastVersionNum = versions.pop()
+                    console.log('lastVersionNum:', lastVersionNum);
+                    // 查询上一个版本的detail，和当前版本的detail做对比
+                    const lastVersion = lastVersionNum ? await prisma.version.findUnique({
+                        where: {
+                            testCaseId_version: {
+                                testCaseId: testCaseId,
+                                version: lastVersionNum
+                            }
+                        }
+                    }) : [];
+                    if (lastVersion.images) {
+                        lastVersion.images.forEach((image, index) => {
+                            const imgResult = compareBase64Images(image, result.images[index]);
                             imgResult && diffImgs.push(imgResult);
                         })
                     }
-                    const detail = testCase.detail;
-                    if (detail.length >= 10) {
-                        detail.shift();
-                    }
-                    detail.push({
-                        status: 'COMPLETED',
-                        video: result.video,
-                        images: result.images,
-                        diffImgs,
-                        timestamp: formatDate(new Date()) // 添加时间戳
-                    });
-                    await prisma.testCase.update({
-                        where: { id: testCaseId },
+
+                    await prisma.version.update({
+                        where: { id: versionId },
                         data: {
-                            detail: detail
+                            status: 'COMPLETED',
+                            video: result.video,
+                            images: result.images,
+                            diffImgs,
                         },
                     }).catch((updateError) => {
                         console.error('Error updating testCase status:', updateError);
                     });
                 } else if (result.status === 'FAILED') {
-                    detail.push({
-                        status: 'FAILED',
-                        video: '',
-                        images: [],
-                        diffImgs: [],
-                        timestamp: formatDate(new Date()) // 添加时间戳
-                    });
-                    await prisma.testCase.update({
-                        where: { id: testCaseId },
-                        data: { detail },
+                    await prisma.version.update({
+                        where: { id: versionId },
+                        data: {
+                            status: 'FAILED',
+                        },
                     }).catch((updateError) => {
                         console.error('Error updating testCase status:', updateError);
                     });
@@ -132,6 +144,7 @@ export async function processQueue() {
                     console.log('Next task in queue:', taskQueue[0].name, formatDate(new Date()), isProcessing);
                     processQueue();
                 } else {
+                    console.log('All tasks completed', isProcessing);
                     isProcessing = false;
                 }
             });

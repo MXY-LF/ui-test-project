@@ -10,8 +10,24 @@ export async function POST(request) {
         const newTestCase = await prisma.testCase.findUnique({
             where: { id: testId }
         });
+        const curProject = await prisma.project.findUnique({
+            where: { id: parseInt(projectId) }
+        });
+
+        const versions = curProject.version;
+        const newVersion = await prisma.version.create({
+            data: {
+                testCaseId: newTestCase.id,
+                version: versions.pop(),
+                status: 'DOING',
+                video: '',
+                images: [],
+                diffImgs: [],
+                // timestamp: formatDate(new Date()) // 添加时间戳
+            }
+        });
         // 将任务添加到队列中
-        taskQueue.push({ testCaseId: testId, script: newTestCase.script, name: newTestCase.name });
+        taskQueue.push({ testCaseId: newTestCase.id, script, name, versionId: newVersion.id, versions });
         console.log('Task added to queue:', taskQueue.length, isProcessing);
         // 如果没有正在处理的任务，则开始处理队列
         if (!isProcessing) {

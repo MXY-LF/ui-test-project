@@ -20,7 +20,7 @@ export default function Project() {
 
   async function fetchData() {
     try {
-      const response = await fetch('/api/project',{method:'POST'});
+      const response = await fetch('/api/project', { method: 'POST' });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -50,8 +50,8 @@ export default function Project() {
   };
 
   const goEdit = (item) => {
-
-    router.push(`/create?id=${item.id}&name=${item.name}&port=${item.port}`);
+    const versionString = encodeURIComponent(JSON.stringify(item.version));
+    router.push(`/create?id=${item.id}&name=${item.name}&port=${item.port}&version=${versionString}`);
   };
 
   return (

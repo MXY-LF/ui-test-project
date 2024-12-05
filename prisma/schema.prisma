@@ -18,15 +18,28 @@ model Project {
   name      String
   port      Int        @unique
   testCases TestCase[] // 关联多个TestCase
+  version   String[]
   zipFile   String? // 压缩包文件路径或URL
 }
 
 model TestCase {
-  id        Int     @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   projectId Int
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project   @relation(fields: [projectId], references: [id])
   script    String // 脚本内容
-  detail    Json // JSON 字段，包含 diffImgs, images, video, status
+  version   Version[]
 }
 
+model Version {
+  id         Int      @id @default(autoincrement())
+  version    String
+  diffImgs   Json?
+  images     Json?
+  video      String?
+  status     String?
+  testCaseId Int
+  testCase   TestCase @relation(fields: [testCaseId], references: [id])
+
+  @@unique([testCaseId, version]) // 复合唯一键
+}
