@@ -8,7 +8,8 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const maxRetries = 3; // 最大重试次数
 
-process.on('message', async ({ testCaseId, script, name }) => {
+const lastVersionNum = versions.pop()
+process.on('message', async ({ testCaseId, script, name, lastVersionNum, testCaseId, versionId }) => {
     let retries = 0;
 
     const runTask = async () => {
@@ -69,8 +70,41 @@ process.on('message', async ({ testCaseId, script, name }) => {
                 videoBase64 = `data:video/mp4;base64,${videoBuffer.toString('base64')}`;
             }
 
-            // 发送结果回主进程
-            process.send({ status: 'COMPLETED', video: videoBase64, images: imgPaths });
+            const result = { status: 'COMPLETED', video: videoBase64, images: imgPaths }
+
+            // 创建新的 testCase 并关联到项目
+            let diffImgs = [];
+            // 查询上一个版本的detail，和当前版本的detail做对比
+            const lastVersion = lastVersionNum ? await prisma.version.findUnique({
+                where: {
+                    testCaseId_version: {
+                        testCaseId: testCaseId,
+                        version: lastVersionNum
+                    }
+                }
+            }) : [];
+            if (lastVersion.images) {
+                lastVersion.images.forEach((image, index) => {
+                    const imgResult = compareBase64Images(image, result.images[index]);
+                    imgResult && diffImgs.push(imgResult);
+                })
+            }
+
+            await prisma.version.update({
+                where: { id: versionId },
+                data: {
+                    status: 'COMPLETED',
+                    video: result.video,
+                    images: result.images,
+                    diffImgs,
+                },
+            }).catch((updateError) => {
+                console.error('Error updating testCase status:', updateError);
+            });
+
+            // else if (result.status === 'FAILED') {
+
+            // }
 
             // 删除图片文件夹
             try {
@@ -114,7 +148,14 @@ process.on('message', async ({ testCaseId, script, name }) => {
                     console.error('Error deleting script file:', unlinkError);
                 }
                 // 发送失败结果回主进程
-                process.send({ status: 'FAILED' });
+                await prisma.version.update({
+                    where: { id: versionId },
+                    data: {
+                        status: 'FAILED',
+                    },
+                }).catch((updateError) => {
+                    console.error('Error updating testCase status:', updateError);
+                });
             }
         } finally {
             await prisma.$disconnect();

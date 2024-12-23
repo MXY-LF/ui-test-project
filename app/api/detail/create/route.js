@@ -76,6 +76,7 @@ export async function processQueue() {
 
     if (taskQueue.length > 0) {
         const { versionId, script, name, versions, testCaseId } = taskQueue.shift();
+        const lastVersionNum = versions.pop()
         console.log('Processing queue...', isProcessing, name, versions, formatDate(new Date()));
         try {
             const projectRoot = process.cwd(); // 获取当前工作目录
@@ -83,54 +84,13 @@ export async function processQueue() {
             const child = fork(path.join(projectRoot, 'app', 'api', 'detail', 'create', 'worker.mjs'));
 
             // 向子进程发送任务
-            child.send({ testCaseId, script, name });
+            child.send({ testCaseId, script, name, lastVersionNum, testCaseId, versionId });
 
             // 监听子进程的消息
             child.on('message', async (result) => {
 
 
-                if (result.status === 'COMPLETED') {
-                    // 创建新的 testCase 并关联到项目
-                    let diffImgs = [];
-                    const lastVersionNum = versions.pop()
-                    console.log('lastVersionNum:', lastVersionNum);
-                    // 查询上一个版本的detail，和当前版本的detail做对比
-                    const lastVersion = lastVersionNum ? await prisma.version.findUnique({
-                        where: {
-                            testCaseId_version: {
-                                testCaseId: testCaseId,
-                                version: lastVersionNum
-                            }
-                        }
-                    }) : [];
-                    if (lastVersion.images) {
-                        lastVersion.images.forEach((image, index) => {
-                            const imgResult = compareBase64Images(image, result.images[index]);
-                            imgResult && diffImgs.push(imgResult);
-                        })
-                    }
 
-                    await prisma.version.update({
-                        where: { id: versionId },
-                        data: {
-                            status: 'COMPLETED',
-                            video: result.video,
-                            images: result.images,
-                            diffImgs,
-                        },
-                    }).catch((updateError) => {
-                        console.error('Error updating testCase status:', updateError);
-                    });
-                } else if (result.status === 'FAILED') {
-                    await prisma.version.update({
-                        where: { id: versionId },
-                        data: {
-                            status: 'FAILED',
-                        },
-                    }).catch((updateError) => {
-                        console.error('Error updating testCase status:', updateError);
-                    });
-                }
             });
 
             // 监听子进程的退出事件
