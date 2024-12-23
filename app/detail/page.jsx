@@ -154,7 +154,7 @@ export default function Create() {
                     </div>
                   ))}
                 </ImagePreview>
-                <Button onClick={() => changeValue(getCurrentItem(item).script)} className='mr-5'>脚本数据</Button>
+                <Button onClick={() => changeValue(item.script)} className='mr-5'>脚本数据</Button>
                 <Button onClick={() => changeModal(getCurrentItem(item).video)}>测试录屏</Button>
               </Card>
             ))}

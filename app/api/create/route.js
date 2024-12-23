@@ -62,12 +62,16 @@ export async function POST(request) {
             data: { zipFile: newFolderPath, version: [...version, curVersion] }
         });
 
-        // 关闭旧的终端进程和端口
-        await closeTerminalAndPort(project.id, port);
+        // // 关闭旧的终端进程和端口
+        // await closeTerminalAndPort(project.id, port);
 
-        // 打开一个新的终端窗口来执行命令
-        const newProcess = openTerminalWithCommand(`serve -s -p ${port} "${newFolderPath}/dist"`);
-        terminalProcesses.set(project.id, newProcess);
+        // // 打开一个新的终端窗口来执行命令
+        // const newProcess = openTerminalWithCommand(`serve -s -p ${port} "${newFolderPath}/dist"`);
+        // terminalProcesses.set(project.id, newProcess);
+
+        // 更新 Nginx 配置并重新加载 Nginx
+        await updateNginxConfig(id, port, newFolderPath);
+        await reloadNginx();
 
         hasId && handleTestCasesAndVersions(project.id, curVersion, version)
 
@@ -212,4 +216,63 @@ function openTerminalWithCommand(command) {
     } catch (error) {
         console.error(`Error opening terminal: ${error.message}`);
     }
+}
+async function updateNginxConfig(projectId, port, newFolderPath) {
+    const configFileName = `project-${projectId}.conf`;
+    const confDirPath = '/etc/nginx/conf.d';
+    const configFilePath = path.join(confDirPath, configFileName);
+
+    // 确保 conf.d 目录存在
+    await ensureDirectoryExists(confDirPath);
+
+    const serverBlock = `
+server {
+    listen ${port};
+
+    location / {
+        root ${newFolderPath}/dist;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+}`;
+
+    try {
+        await fs.promises.writeFile(configFilePath, serverBlock);
+        console.log(`Nginx configuration created/updated for project with ID: ${projectId}`);
+    } catch (error) {
+        console.error(`Error writing Nginx configuration for project with ID: ${projectId}`, error);
+        throw error;
+    }
+}
+
+// 确保目录存在
+async function ensureDirectoryExists(dirPath) {
+    try {
+        if (!fs.existsSync(dirPath)) {
+            await fs.promises.mkdir(dirPath, { recursive: true });
+            console.log(`Created directory: ${dirPath}`);
+        }
+    } catch (error) {
+        console.error(`Error creating directory ${dirPath}:`, error);
+        throw error;
+    }
+}
+
+function reloadNginx() {
+    return new Promise((resolve, reject) => {
+        const child = spawn('sudo', ['systemctl', 'reload', 'nginx']);
+        child.on('error', (err) => {
+            console.error(`Error reloading Nginx: ${err.message}`);
+            reject(err);
+        });
+        child.on('exit', (code, signal) => {
+            if (code === 0) {
+                console.log(`Nginx reloaded successfully`);
+                resolve();
+            } else {
+                console.error(`Nginx failed to reload with code ${code} and signal ${signal}`);
+                reject(new Error(`Nginx failed to reload`));
+            }
+        });
+    });
 }
